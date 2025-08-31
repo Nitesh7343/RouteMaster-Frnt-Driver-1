@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMaster Real-time Socket.IO Test</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .driver-panel {
+            grid-column: 1;
+        }
+        .user-panel {
+            grid-column: 2;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .coordinates {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .room-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚌 RouteMaster Real-time Socket.IO Test</h1>
+    
+    <div class="container">
+        <!-- Driver Panel -->
+        <div class="driver-panel">
+            <h2>🚗 Driver Panel</h2>
+            
+            <div class="status disconnected" id="driverStatus">Disconnected</div>
+            
+            <div>
+                <label>JWT Token:</label><br>
+                <input type="text" id="driverToken" placeholder="Enter JWT token from login" style="width: 400px;">
+                <button onclick="connectDriver()">Connect as Driver</button>
+                <button onclick="disconnectDriver()">Disconnect</button>
+            </div>
+            
+            <hr>
+            
+            <h3>Bus Operations</h3>
+            <div>
+                <label>Bus ID:</label>
+                <input type="text" id="driverBusId" value="BUS001" placeholder="Bus ID">
+            </div>
+            
+            <div>
+                <button onclick="toggleBusOnline()">Go Online</button>
+                <button onclick="toggleBusOffline()">Go Offline</button>
+            </div>
+            
+            <hr>
+            
+            <h3>Location Updates</h3>
+            <div class="coordinates">
+                <div>
+                    <label>Longitude:</label>
+                    <input type="number" id="driverLng" value="-122.4194" step="0.0001">
+                </div>
+                <div>
+                    <label>Latitude:</label>
+                    <input type="number" id="driverLat" value="37.7749" step="0.0001">
+                </div>
+            </div>
+            
+            <div>
+                <label>Speed (km/h):</label>
+                <input type="number" id="driverSpeed" value="25" min="0" max="200">
+                
+                <label>Heading (degrees):</label>
+                <input type="number" id="driverHeading" value="90" min="0" max="360">
+            </div>
+            
+            <div>
+                <button onclick="sendLocationUpdate()">Send Location Update</button>
+                <button onclick="startLocationSimulation()">Start Simulation</button>
+                <button onclick="stopLocationSimulation()">Stop Simulation</button>
+            </div>
+            
+            <hr>
+            
+            <h3>Driver Log</h3>
+            <div class="log" id="driverLog"></div>
+        </div>
+        
+        <!-- User Panel -->
+        <div class="user-panel">
+            <h2>👤 User Panel</h2>
+            
+            <div class="status disconnected" id="userStatus">Disconnected</div>
+            
+            <div>
+                <button onclick="connectUser()">Connect as User</button>
+                <button onclick="disconnectUser()">Disconnect</button>
+            </div>
+            
+            <hr>
+            
+            <h3>Subscribe to Updates</h3>
+            <div>
+                <label>Bus ID:</label>
+                <input type="text" id="userBusId" value="BUS001" placeholder="Bus ID">
+                <button onclick="subscribeToBus()">Subscribe to Bus</button>
+                <button onclick="unsubscribeFromBus()">Unsubscribe</button>
+            </div>
+            
+            <div>
+                <label>Route ID:</label>
+                <input type="text" id="userRouteId" value="RT001" placeholder="Route ID">
+                <button onclick="subscribeToRoute()">Subscribe to Route</button>
+                <button onclick="unsubscribeFromRoute()">Unsubscribe</button>
+            </div>
+            
+            <div class="room-info" id="userRooms">
+                <strong>Subscribed Rooms:</strong> None
+            </div>
+            
+            <hr>
+            
+            <h3>User Log</h3>
+            <div class="log" id="userLog"></div>
+        </div>
+    </div>
+
+    <script>
+        let driverSocket = null;
+        let userSocket = null;
+        let locationSimulationInterval = null;
+        let currentLocation = { lng: -122.4194, lat: 37.7749 };
+        let currentHeading = 90;
+        let currentSpeed = 25;
+
+        // Driver Functions
+        function connectDriver() {
+            const token = document.getElementById('driverToken').value.trim();
+            if (!token) {
+                log('driver', 'Please enter a JWT token', 'error');
+                return;
+            }
+
+            try {
+                driverSocket = io('http://localhost:5001/driver', {
+                    auth: { token }
+                });
+
+                driverSocket.on('connect', () => {
+                    updateDriverStatus('Connected', 'connected');
+                    log('driver', 'Connected to driver namespace', 'success');
+                });
+
+                driverSocket.on('disconnect', () => {
+                    updateDriverStatus('Disconnected', 'disconnected');
+                    log('driver', 'Disconnected from driver namespace', 'info');
+                });
+
+                driverSocket.on('connect_error', (error) => {
+                    updateDriverStatus('Connection Error', 'error');
+                    log('driver', `Connection error: ${error.message}`, 'error');
+                });
+
+                driverSocket.on('driver:toggle:success', (data) => {
+                    log('driver', `Bus ${data.busId} ${data.online ? 'online' : 'offline'} successfully`, 'success');
+                });
+
+                driverSocket.on('driver:toggle:error', (data) => {
+                    log('driver', `Toggle error: ${data.error}`, 'error');
+                });
+
+                driverSocket.on('driver:move:success', (data) => {
+                    log('driver', `Location update sent successfully for bus ${data.busId}`, 'success');
+                });
+
+                driverSocket.on('driver:move:error', (data) => {
+                    log('driver', `Move error: ${data.error}`, 'error');
+                });
+
+            } catch (error) {
+                log('driver', `Connection error: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnectDriver() {
+            if (driverSocket) {
+                driverSocket.disconnect();
+                driverSocket = null;
+                updateDriverStatus('Disconnected', 'disconnected');
+                log('driver', 'Disconnected from driver namespace', 'info');
+            }
+        }
+
+        function toggleBusOnline() {
+            if (!driverSocket) {
+                log('driver', 'Not connected', 'error');
+                return;
+            }
+            const busId = document.getElementById('driverBusId').value;
+            driverSocket.emit('driver:toggle', { busId, online: true });
+        }
+
+        function toggleBusOffline() {
+            if (!driverSocket) {
+                log('driver', 'Not connected', 'error');
+                return;
+            }
+            const busId = document.getElementById('driverBusId').value;
+            driverSocket.emit('driver:toggle', { busId, online: false });
+        }
+
+        function sendLocationUpdate() {
+            if (!driverSocket) {
+                log('driver', 'Not connected', 'error');
+                return;
+            }
+            
+            const busId = document.getElementById('driverBusId').value;
+            const lng = parseFloat(document.getElementById('driverLng').value);
+            const lat = parseFloat(document.getElementById('driverLat').value);
+            const speed = parseFloat(document.getElementById('driverSpeed').value);
+            const heading = parseFloat(document.getElementById('driverHeading').value);
+            const ts = Date.now();
+
+            driverSocket.emit('driver:move', { busId, lng, lat, speed, heading, ts });
+            
+            // Update current location for simulation
+            currentLocation = { lng, lat };
+            currentHeading = heading;
+            currentSpeed = speed;
+        }
+
+        function startLocationSimulation() {
+            if (locationSimulationInterval) {
+                log('driver', 'Simulation already running', 'info');
+                return;
+            }
+
+            log('driver', 'Starting location simulation...', 'info');
+            locationSimulationInterval = setInterval(() => {
+                // Simulate movement in a circle
+                const angle = (Date.now() / 10000) % (2 * Math.PI);
+                const radius = 0.001; // Small radius for demo
+                
+                currentLocation.lng = -122.4194 + radius * Math.cos(angle);
+                currentLocation.lat = 37.7749 + radius * Math.sin(angle);
+                currentHeading = (angle * 180 / Math.PI + 90) % 360;
+                
+                // Update input fields
+                document.getElementById('driverLng').value = currentLocation.lng.toFixed(6);
+                document.getElementById('driverLat').value = currentLocation.lat.toFixed(6);
+                document.getElementById('driverHeading').value = Math.round(currentHeading);
+                
+                // Send location update
+                sendLocationUpdate();
+            }, 3000); // Update every 3 seconds
+        }
+
+        function stopLocationSimulation() {
+            if (locationSimulationInterval) {
+                clearInterval(locationSimulationInterval);
+                locationSimulationInterval = null;
+                log('driver', 'Location simulation stopped', 'info');
+            }
+        }
+
+        // User Functions
+        function connectUser() {
+            try {
+                userSocket = io('http://localhost:5001/user');
+
+                userSocket.on('connect', () => {
+                    updateUserStatus('Connected', 'connected');
+                    log('user', 'Connected to user namespace', 'success');
+                });
+
+                userSocket.on('disconnect', () => {
+                    updateUserStatus('Disconnected', 'disconnected');
+                    log('user', 'Disconnected from user namespace', 'info');
+                });
+
+                userSocket.on('bus:status', (data) => {
+                    log('user', `Bus ${data.busId} status: ${data.online ? 'online' : 'offline'}`, 'info');
+                });
+
+                userSocket.on('bus:update', (data) => {
+                    log('user', `Bus ${data.busId} location: [${data.location.coordinates[1].toFixed(4)}, ${data.location.coordinates[0].toFixed(4)}]`, 'info');
+                });
+
+                userSocket.on('route:buses', (data) => {
+                    log('user', `Route ${data.routeId} has ${data.buses.length} active buses`, 'info');
+                });
+
+            } catch (error) {
+                log('user', `Connection error: ${error.message}`, 'error');
+            }
+        }
+
+        function disconnectUser() {
+            if (userSocket) {
+                userSocket.disconnect();
+                userSocket = null;
+                updateUserStatus('Disconnected', 'disconnected');
+                log('user', 'Disconnected from user namespace', 'info');
+                updateUserRooms([]);
+            }
+        }
+
+        function subscribeToBus() {
+            if (!userSocket) {
+                log('user', 'Not connected', 'error');
+                return;
+            }
+            const busId = document.getElementById('userBusId').value;
+            userSocket.emit('subscribe:bus', { busId });
+            log('user', `Subscribed to bus ${busId}`, 'success');
+        }
+
+        function unsubscribeFromBus() {
+            if (!userSocket) {
+                log('user', 'Not connected', 'error');
+                return;
+            }
+            const busId = document.getElementById('userBusId').value;
+            userSocket.emit('unsubscribe:bus', { busId });
+            log('user', `Unsubscribed from bus ${busId}`, 'info');
+        }
+
+        function subscribeToRoute() {
+            if (!userSocket) {
+                log('user', 'Not connected', 'error');
+                return;
+            }
+            const routeId = document.getElementById('userRouteId').value;
+            userSocket.emit('subscribe:route', { routeId });
+            log('user', `Subscribed to route ${routeId}`, 'success');
+        }
+
+        function unsubscribeFromRoute() {
+            if (!userSocket) {
+                log('user', 'Not connected', 'error');
+                return;
+            }
+            const routeId = document.getElementById('userRouteId').value;
+            userSocket.emit('unsubscribe:route', { routeId });
+            log('user', `Unsubscribed from route ${routeId}`, 'info');
+        }
+
+        // Utility Functions
+        function updateDriverStatus(text, className) {
+            const status = document.getElementById('driverStatus');
+            status.textContent = text;
+            status.className = `status ${className}`;
+        }
+
+        function updateUserStatus(text, className) {
+            const status = document.getElementById('userStatus');
+            status.textContent = text;
+            status.className = `status ${className}`;
+        }
+
+        function updateUserRooms(rooms) {
+            const roomsDiv = document.getElementById('userRooms');
+            if (rooms.length === 0) {
+                roomsDiv.innerHTML = '<strong>Subscribed Rooms:</strong> None';
+            } else {
+                roomsDiv.innerHTML = `<strong>Subscribed Rooms:</strong> ${rooms.join(', ')}`;
+            }
+        }
+
+        function log(panel, message, type = 'info') {
+            const logElement = document.getElementById(`${panel}Log`);
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (locationSimulationInterval) {
+                clearInterval(locationSimulationInterval);
+            }
+            if (driverSocket) {
+                driverSocket.disconnect();
+            }
+            if (userSocket) {
+                userSocket.disconnect();
+            }
+        });
+    </script>
+</body>
+</html>

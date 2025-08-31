@@ -1,144 +1,82 @@
-+3
+# RouteMaster Backend
 
-
-...........# Route Master
-
-A React Native + Expo mobile app for sharing live location with others.
+A Node.js backend API for the RouteMaster application built with TypeScript, Express, and MongoDB.
 
 ## Features
 
-- **Login Screen**: User authentication with name and password
-- **Signup Screen**: Create new account with full name, email, and password
-- **Home Screen**: Placeholder screen for the main app functionality
-- **Navigation**: Seamless navigation between screens using Expo Router
+- TypeScript support
+- Express.js REST API
+- MongoDB with Mongoose ODM
+- JWT authentication
+- Socket.io for real-time communication
+- Input validation with Zod
+- Password hashing with bcrypt
+- Scheduled tasks with node-cron
+- CORS support
 
-## Tech Stack
-
-- **React Native**: Cross-platform mobile development
-- **Expo**: Development platform and tools
-- **Expo Router**: File-based navigation system
-- **React Hooks**: useState, useRouter for state management and navigation
-
-## Project Structure
-
-```
-RouteMaster/
-├── app/
-│   ├── _layout.js          # Root layout with navigation stack
-│   ├── index.js            # Login screen (main entry point)
-│   ├── signup.js           # Signup screen
-│   └── home.js             # Home screen (placeholder)
-├── assets/
-│   └── logo.png            # App logo (60x60px recommended)
-├── package.json            # Dependencies and scripts
-├── app.json               # Expo configuration
-├── babel.config.js        # Babel configuration
-└── README.md              # This file
-```
-
-## Setup Instructions
-
-### Prerequisites
+## Prerequisites
 
 - Node.js (v16 or higher)
+- MongoDB (local or cloud instance)
 - npm or yarn
-- Expo CLI (`npm install -g @expo/cli`)
-- iOS Simulator (for iOS development) or Android Studio (for Android development)
 
-### Installation
+## Installation
 
-1. **Clone or download the project**
-   ```bash
-   cd RouteMaster
-   ```
-
-2. **Install dependencies**
+1. Clone the repository
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-3. **Add your logo**
-   - Replace `assets/logo.png` with your actual logo image
-   - Recommended size: 60x60 pixels
-   - Format: PNG
-
-4. **Start the development server**
+3. Copy environment variables:
    ```bash
-   npm start
+   cp .env.example .env
    ```
 
-5. **Run on device/simulator**
-   - Press `i` for iOS Simulator
-   - Press `a` for Android Emulator
-   - Scan QR code with Expo Go app on your phone
+4. Update the `.env` file with your configuration
 
-## App Screens
+## Development
 
-### Login Screen (`app/index.js`)
-- App name "Route Master" at the top
-- Logo in the top-right corner
-- Name input field
-- Password input field (hidden)
-- Login button
-- "Create new account" link
+Start the development server:
+```bash
+npm run dev
+```
 
-### Signup Screen (`app/signup.js`)
-- Full name input
-- Email input
-- Password input
-- Confirm password input
-- Create account button
-- Back to login link
+## Build
 
-### Home Screen (`app/home.js`)
-- Welcome message
-- Feature preview
-- Logout button
+Build the project for production:
+```bash
+npm run build
+```
 
-## Navigation Flow
+## Production
 
-1. **App starts** → Login Screen
-2. **Login button** → Home Screen (if credentials are valid)
-3. **Create new account** → Signup Screen
-4. **Back to login** → Returns to Login Screen
-5. **Logout** → Returns to Login Screen
+Start the production server:
+```bash
+npm start
+```
 
-## Customization
+## Project Structure
 
-### Styling
-- All styles are defined using `StyleSheet.create()`
-- Colors, spacing, and typography can be easily modified
-- Responsive design with proper keyboard handling
+```
+src/
+├── controllers/     # Route controllers
+├── db/             # Database connection
+├── middleware/     # Custom middleware
+├── models/         # Mongoose models
+├── routes/         # API routes
+├── sockets/        # Socket.io handlers
+├── utils/          # Utility functions
+├── workers/        # Background workers
+└── index.ts        # Entry point
+```
 
-### Functionality
-- Add real authentication logic in `handleLogin()` and `handleSignup()`
-- Implement actual location sharing features in the Home Screen
-- Add form validation and error handling
+## API Endpoints
 
-## Development Notes
+Coming soon...
 
-- Uses Expo Router for file-based navigation
-- Implements proper keyboard handling with `KeyboardAvoidingView`
-- Safe area handling for different device sizes
-- Clean, modern UI with consistent styling
+## License
 
-## Next Steps
-
-To complete the Route Master app, consider adding:
-
-1. **Real Authentication**: Connect to a backend service
-2. **Location Services**: Implement GPS tracking and sharing
-3. **User Management**: User profiles and friend lists
-4. **Real-time Updates**: WebSocket or Firebase integration
-5. **Maps Integration**: Display locations on interactive maps
-6. **Push Notifications**: Location sharing alerts
-7. **Privacy Controls**: Granular sharing permissions
-
-## Troubleshooting
-
-- **Metro bundler issues**: Clear cache with `npx expo start --clear`
-- **Navigation problems**: Ensure Expo Router is properly configured
-- **Image loading**: Verify logo.png exists in assets folder
-- **Platform-specific issues**: Check Expo documentation for platform requirements
+ISC
 
 

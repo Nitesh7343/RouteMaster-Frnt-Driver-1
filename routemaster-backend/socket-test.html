@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMaster Socket.IO Test</title>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { display: flex; gap: 20px; }
+        .namespace { flex: 1; border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; max-height: 300px; overflow-y: auto; }
+        button { padding: 8px 16px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
+        .driver { background: #e3f2fd; }
+        .user { background: #f3e5f5; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🔌 RouteMaster Socket.IO Test Client</h1>
+    
+    <div class="container">
+        <div class="namespace driver">
+            <h2>🚗 Driver Namespace (/driver)</h2>
+            <button onclick="connectDriver()">Connect as Driver</button>
+            <button onclick="disconnectDriver()">Disconnect Driver</button>
+            <button onclick="updateDriverLocation()">Update Location</button>
+            <button onclick="updateDriverStatus()">Update Status</button>
+            <div class="log" id="driverLog"></div>
+        </div>
+        
+        <div class="namespace user">
+            <h2>👤 User Namespace (/user)</h2>
+            <button onclick="connectUser()">Connect as User</button>
+            <button onclick="disconnectUser()">Disconnect User</button>
+            <button onclick="updateUserLocation()">Update Location</button>
+            <button onclick="findNearbyDrivers()">Find Nearby Drivers</button>
+            <div class="log" id="userLog"></div>
+        </div>
+    </div>
+
+    <script>
+        let driverSocket = null;
+        let userSocket = null;
+
+        function log(namespace, message, type = 'info') {
+            const logElement = document.getElementById(namespace + 'Log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function connectDriver() {
+            if (driverSocket) {
+                log('driver', 'Already connected!', 'error');
+                return;
+            }
+
+            driverSocket = io('http://localhost:5001/driver');
+            
+            driverSocket.on('connect', () => {
+                log('driver', 'Connected to /driver namespace', 'success');
+            });
+
+            driverSocket.on('authenticated', (data) => {
+                log('driver', `Authentication: ${JSON.stringify(data)}`, 'success');
+            });
+
+            driverSocket.on('disconnect', () => {
+                log('driver', 'Disconnected from /driver namespace', 'error');
+                driverSocket = null;
+            });
+        }
+
+        function disconnectDriver() {
+            if (driverSocket) {
+                driverSocket.disconnect();
+                driverSocket = null;
+                log('driver', 'Disconnected', 'info');
+            }
+        }
+
+        function updateDriverLocation() {
+            if (!driverSocket) {
+                log('driver', 'Not connected!', 'error');
+                return;
+            }
+
+            const location = {
+                latitude: 37.7749 + (Math.random() - 0.5) * 0.01,
+                longitude: -122.4194 + (Math.random() - 0.5) * 0.01
+            };
+
+            driverSocket.emit('location_update', location);
+            log('driver', `Location updated: ${JSON.stringify(location)}`, 'info');
+        }
+
+        function updateDriverStatus() {
+            if (!driverSocket) {
+                log('driver', 'Not connected!', 'error');
+                return;
+            }
+
+            const statuses = ['online', 'offline', 'busy', 'available'];
+            const status = statuses[Math.floor(Math.random() * statuses.length)];
+            
+            driverSocket.emit('status_update', status);
+            log('driver', `Status updated: ${status}`, 'info');
+        }
+
+        function connectUser() {
+            if (userSocket) {
+                log('user', 'Already connected!', 'error');
+                return;
+            }
+
+            userSocket = io('http://localhost:5001/user');
+            
+            userSocket.on('connect', () => {
+                log('user', 'Connected to /user namespace', 'success');
+            });
+
+            userSocket.on('authenticated', (data) => {
+                log('user', `Authentication: ${JSON.stringify(data)}`, 'success');
+            });
+
+            userSocket.on('driver_location', (data) => {
+                log('user', `Driver location received: ${JSON.stringify(data)}`, 'info');
+            });
+
+            userSocket.on('nearby_drivers_found', (data) => {
+                log('user', `Nearby drivers: ${JSON.stringify(data)}`, 'info');
+            });
+
+            userSocket.on('disconnect', () => {
+                log('user', 'Disconnected from /user namespace', 'error');
+                userSocket = null;
+            });
+        }
+
+        function disconnectUser() {
+            if (userSocket) {
+                userSocket.disconnect();
+                userSocket = null;
+                log('user', 'Disconnected', 'info');
+            }
+        }
+
+        function updateUserLocation() {
+            if (!userSocket) {
+                log('user', 'Not connected!', 'error');
+                return;
+            }
+
+            const location = {
+                latitude: 37.7749 + (Math.random() - 0.5) * 0.01,
+                longitude: -122.4194 + (Math.random() - 0.5) * 0.01
+            };
+
+            userSocket.emit('location_update', location);
+            log('user', `Location updated: ${JSON.stringify(location)}`, 'info');
+        }
+
+        function findNearbyDrivers() {
+            if (!userSocket) {
+                log('user', 'Not connected!', 'error');
+                return;
+            }
+
+            const location = {
+                latitude: 37.7749,
+                longitude: -122.4194,
+                radius: 1000
+            };
+
+            userSocket.emit('find_nearby_drivers', location);
+            log('user', `Searching for nearby drivers: ${JSON.stringify(location)}`, 'info');
+        }
+    </script>
+</body>
+</html>

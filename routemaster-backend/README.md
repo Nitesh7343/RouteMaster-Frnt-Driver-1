@@ -88,6 +88,11 @@ npm run start:prod
 | `npm run format` | Format code with Prettier |
 | `npm run format:check` | Check if code is properly formatted |
 | `npm run seed` | Seed database with sample data |
+| `npm run setup` | Automated setup and testing helper |
+| `npm test` | Run full integration tests |
+| `npm run test:driver` | Test driver Socket.IO connection |
+| `npm run test:user` | Test user Socket.IO connection |
+| `npm run test:quick` | Quick health check |
 
 ## 🌐 API Endpoints
 
@@ -193,11 +198,56 @@ src/
 - **Stale Monitor** - Automatically marks inactive buses as offline
 - **ETA Worker** - Calculates real-time arrival times for online buses
 
-## 🧪 Testing
+## 🧪 Verification & Testing
 
-Test the Socket.IO functionality using the provided HTML files:
-- `socket-test.html` - Basic Socket.IO testing
-- `socket-test-realtime.html` - Comprehensive real-time testing
+### Quick Verification
+
+```bash
+# Run comprehensive verification
+npm run verify
+
+# Check project structure and files
+npm run verify:summary
+
+# Test specific components
+npm run verify:health
+npm run verify:auth
+npm run verify:socket
+npm run verify:geo
+npm run verify:workers
+```
+
+### Manual Verification
+
+For detailed manual verification steps, see [VERIFICATION.md](./VERIFICATION.md) which includes:
+
+- **Database & Indexing** - 2dsphere index verification
+- **Health Check** - `/health` endpoint testing
+- **Authentication** - JWT signup/login verification
+- **Assignment** - `/me/assignment` endpoint testing
+- **Real-time Communication** - Socket.IO driver/user testing
+- **Geospatial Queries** - `$near` endpoint distance ordering
+- **Background Workers** - Stale monitor and ETA worker testing
+- **Documentation** - README and setup instructions verification
+
+### Manual Testing
+1. **Setup**: Follow the detailed instructions in [TEST.md](./TEST.md)
+2. **API Testing**: Use Postman or curl to test REST endpoints
+3. **Socket Testing**: Use the provided test scripts for real-time features
+4. **Integration Testing**: Run the comprehensive test suite
+
+### Test Scripts
+- `npm test` - Full integration test suite
+- `npm run test:driver` - Driver Socket.IO testing
+- `npm run test:user` - User Socket.IO testing
+- `npm run test:quick` - Quick health check
+
+### Test Credentials
+After running `npm run seed`, use these test accounts:
+- Driver 1: `+12345678901` / `Driver123!`
+- Driver 2: `+12345678902` / `Driver123!`
+- Driver 3: `+12345678903` / `Driver123!`
+- Admin: `+12345678904` / `Admin123!`
 
 ## 📊 Monitoring
 
@@ -205,6 +255,69 @@ Test the Socket.IO functionality using the provided HTML files:
 - Security status: `GET /security/status`
 - Change stream status: `GET /api/buses/stream/status`
 - Workers status: `GET /api/buses/workers/status`
+
+## 📱 React Native Integration
+
+For React Native client integration examples, see [docs/rn-client-snippets.md](./docs/rn-client-snippets.md) for:
+
+- **Driver App** - Socket.IO connection with JWT authentication, location tracking with Expo Location, and real-time movement updates
+- **User App** - Socket.IO connection to user namespace, bus/route subscription, and live map updates
+- **Location Throttling** - Smart location update logic (>20m distance or time-based intervals)
+- **Last Seen Handling** - Automatic API calls for stale bus data
+- **Performance Optimization** - Location throttling and network state monitoring
+
+### Quick RN Setup
+
+```bash
+# Install dependencies
+npm install socket.io-client expo-location react-native-maps
+
+# Configure environment
+API_BASE_URL=http://your-backend-url:5001
+SOCKET_URL=http://your-backend-url:5001
+
+# Import and use the provided services
+import DriverSocketService from './services/driverSocket';
+import UserSocketService from './services/userSocket';
+```
+
+## 🚀 Production Scaling
+
+For production deployment across multiple instances, see [SCALING.md](./SCALING.md) for comprehensive guidance on:
+
+- **Socket.IO Adapters** - MongoDB and Redis adapters for multi-instance support
+- **Load Balancer Configuration** - Nginx and AWS ALB setup
+- **Environment Configuration** - Production environment variables
+- **Monitoring and Health Checks** - Production monitoring setup
+- **Performance Optimization** - Node.js and MongoDB optimization
+- **Deployment Strategies** - Blue-green and Kubernetes deployment
+
+### Quick Scaling Setup
+
+```bash
+# Install scaling dependencies
+npm install @socket.io/mongo-adapter @socket.io/redis-adapter redis
+
+# Configure environment variables
+SOCKET_ADAPTER_TYPE=mongo  # or redis
+MONGODB_URI=your-mongodb-atlas-uri
+REDIS_URL=your-redis-url  # if using Redis adapter
+
+# Start with adapter support
+npm run start:prod
+```
+
+### Scaling Examples
+
+```bash
+# Start multiple instances (in different terminals)
+INSTANCE_ID=instance1 PORT=5001 npm run scaling:example
+INSTANCE_ID=instance2 PORT=5002 npm run scaling:example
+INSTANCE_ID=instance3 PORT=5003 npm run scaling:example
+
+# Test multi-instance communication
+npm run scaling:test
+```
 
 ## 🚀 Deployment
 

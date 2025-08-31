@@ -13,7 +13,20 @@
     "format": "prettier --write src/**/*.ts",
     "format:check": "prettier --check src/**/*.ts",
     "seed": "ts-node src/scripts/seed.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-integration.js",
+    "test:driver": "node test-driver-socket.js",
+    "test:user": "node test-user-socket.js",
+    "test:quick": "curl -s http://localhost:5001/health",
+    "setup": "node setup-test.js",
+    "scaling:example": "node examples/scaling-example.js",
+    "scaling:test": "node examples/scaling-test-client.js",
+    "verify": "node scripts/verify.js",
+    "verify:health": "curl -s http://localhost:5001/health | jq .",
+    "verify:auth": "node scripts/verify.js --auth-only",
+    "verify:socket": "node scripts/verify.js --socket-only",
+    "verify:geo": "node scripts/verify.js --geo-only",
+    "verify:workers": "node scripts/verify.js --workers-only",
+    "verify:summary": "node scripts/verify-summary.js"
   },
   "keywords": [
     "routemaster",
@@ -25,6 +38,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@socket.io/mongo-adapter": "^0.4.0",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -37,7 +53,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
     "node-cron": "^4.2.1",
+    "redis": "^4.6.13",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "xss-clean": "^0.1.4",
     "zod": "^4.1.5"
   },

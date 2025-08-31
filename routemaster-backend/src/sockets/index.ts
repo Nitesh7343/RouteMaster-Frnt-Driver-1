@@ -7,6 +7,7 @@ import { locationThrottler } from '../utils/locationThrottle';
 import { BusService } from '../services/busService';
 import ChangeStreamWatcher from './stream';
 import WorkersManager from '../workers';
+import { createSocketIOAdapter } from './adapter';
 
 interface SocketData {
   userId?: string;

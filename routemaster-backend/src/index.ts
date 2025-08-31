@@ -8,6 +8,7 @@ import { connectDB } from './db/connect';
 import { initializeSockets } from './sockets';
 import routes from './routes';
 import { initializeChangeStreamWatcher } from './routes';
+import { createSocketIOAdapter } from './sockets/adapter';
 import {
   helmetConfig,
   corsConfig,
@@ -27,10 +28,31 @@ const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5001;
 
-// Initialize Socket.IO with CORS
-const io = new SocketIOServer(server, {
-  cors: corsConfig
-});
+// Initialize Socket.IO with adapter for multi-instance scaling
+const initializeSocketIO = async (server: any) => {
+  try {
+    const adapter = await createSocketIOAdapter({
+      type: (process.env.SOCKET_ADAPTER_TYPE as 'mongo' | 'redis') || 'mongo',
+      mongoUri: process.env.MONGODB_URI,
+      redisUrl: process.env.REDIS_URL,
+      dbName: process.env.DB_NAME || 'routemaster',
+      collectionName: process.env.SOCKET_ADAPTER_COLLECTION || 'socket.io-adapter-events'
+    });
+
+    const io = new SocketIOServer(server, {
+      cors: corsConfig,
+      adapter: adapter
+    });
+
+    return io;
+  } catch (error) {
+    console.error('❌ Failed to initialize Socket.IO with adapter:', error);
+    // Fallback to default Socket.IO without adapter
+    return new SocketIOServer(server, {
+      cors: corsConfig
+    });
+  }
+};
 
 // Security middleware
 app.use(helmetConfig);
@@ -117,7 +139,10 @@ const startServer = async () => {
       console.warn('⚠️ MONGODB_URI not found in environment variables');
     }
 
-    // Initialize Socket.IO
+    // Initialize Socket.IO with adapter
+    const io = await initializeSocketIO(server);
+    
+    // Initialize Socket.IO namespaces and handlers
     const changeStreamWatcher = initializeSockets(io);
     console.log('🔌 Socket.IO initialized with namespaces: /driver, /user');
     console.log('📡 MongoDB change stream watcher initialized');
@@ -161,4 +186,4 @@ const getCurrentIP = async (): Promise<string> => {
 // Start the server
 startServer();
 
-export { app, server, io };
+export { app, server };

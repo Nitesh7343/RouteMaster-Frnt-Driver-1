@@ -102,9 +102,9 @@ export default function SignupScreen() {
 
   const handleSignup = () => {
     if (validateForm()) {
-      // Create account and navigate to location sharing
+      // Create account and navigate back to home to choose account type
       // In a real app, you would save the account to database
-      router.push('/location-sharing');
+      router.replace('/home');
     }
   };
 

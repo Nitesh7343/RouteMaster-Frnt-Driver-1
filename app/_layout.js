@@ -7,9 +7,16 @@ export default function RootLayout() {
       <StatusBar style="auto" />
       <Stack>
         <Stack.Screen 
-          name="index" 
+          name="home" 
           options={{ 
             title: 'Route Master',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="index" 
+          options={{ 
+            title: 'Driver Login',
             headerShown: false 
           }} 
         />
@@ -18,6 +25,20 @@ export default function RootLayout() {
           options={{ 
             title: 'Create Account',
             headerShown: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="user" 
+          options={{ 
+            title: 'User Home',
+            headerShown: false 
+          }} 
+        />
+        <Stack.Screen 
+          name="tracking-bus" 
+          options={{ 
+            title: 'Track Bus',
+            headerShown: false 
           }} 
         />
 

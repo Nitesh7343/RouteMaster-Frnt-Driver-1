@@ -5,45 +5,72 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    router.replace('/');
+  const handleDriverPress = () => {
+    router.push('/');
+  };
+
+  const handleUserPress = () => {
+    router.push('/user');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Route Master!</Text>
-        <Text style={styles.subtitle}>
-          Your location sharing app is ready to use.
-        </Text>
-        
-        <View style={styles.featureContainer}>
-          <Text style={styles.featureTitle}>Available Features:</Text>
-          <Text style={styles.feature}>• Share your live location</Text>
-          <Text style={styles.feature}>• Track friends and family</Text>
-          <Text style={styles.feature}>• Real-time location updates</Text>
-          <Text style={styles.feature}>• Route history</Text>
+      {/* App Name at Top */}
+      <View style={styles.header}>
+        <Text style={styles.appName}>Route Master</Text>
+      </View>
+
+      {/* Logo Placeholder */}
+      <View style={styles.logoContainer}>
+        <View style={styles.logoPlaceholder}>
+          <Text style={styles.logoText}>RM</Text>
         </View>
+      </View>
 
+      {/* Title */}
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Choose Account Type</Text>
+      </View>
+
+      {/* Buttons Container */}
+      <View style={styles.buttonsContainer}>
+        {/* Driver Button */}
         <TouchableOpacity 
-          style={styles.locationButton}
-          onPress={() => router.push('/location-sharing')}
+          style={styles.accountButton}
+          onPress={handleDriverPress}
+          activeOpacity={0.8}
         >
-          <Text style={styles.locationButtonText}>Share Live Location</Text>
+          <View style={styles.buttonIcon}>
+            <Text style={styles.iconText}>🚌</Text>
+          </View>
+          <Text style={styles.buttonText}>Driver</Text>
         </TouchableOpacity>
 
+        {/* User Button */}
         <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
+          style={styles.accountButton}
+          onPress={handleUserPress}
+          activeOpacity={0.8}
         >
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <View style={styles.buttonIcon}>
+            <Text style={styles.iconText}>👤</Text>
+          </View>
+          <Text style={styles.buttonText}>User</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Made with Love */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Made with ♥</Text>
       </View>
     </SafeAreaView>
   );
@@ -52,77 +79,98 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#004D40', // Dark teal background matching your theme
   },
-  content: {
-    flex: 1,
+  header: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 20,
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  logoPlaceholder: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#FF6B00', // Orange background matching your theme
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  logoText: {
+    color: '#FFFFFF',
+    fontSize: 36,
+    fontWeight: 'bold',
+  },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 60,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  featureContainer: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 40,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  featureTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 15,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  feature: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 40,
+    marginBottom: 80,
   },
-  locationButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+  accountButton: {
+    backgroundColor: '#000000', // Black background
+    borderWidth: 2,
+    borderColor: '#FF6B00', // Orange border
+    borderRadius: 16,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    width: (width - 120) / 2, // Responsive width
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  locationButtonText: {
-    color: '#fff',
+  buttonIcon: {
+    marginBottom: 16,
+  },
+  iconText: {
+    fontSize: 48,
+  },
+  buttonText: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  logoutButton: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+  footer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+  footerText: {
+    color: '#B0B0B0',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 
